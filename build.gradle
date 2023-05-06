@@ -1,0 +1,102 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'signing'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+group = 'io.github.epi155'
+version = '0.6.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/io.github.epi155/recfm-addon-api
+    implementation 'io.github.epi155:recfm-addon-api:0.6.0'
+    implementation 'org.yaml:snakeyaml:1.33'
+
+    compileOnly 'org.projectlombok:lombok:1.18.26'
+    annotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.26'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.26'
+
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+
+            groupId = "$project.group"
+            artifactId = "$project.name"
+            version = "$project.version"
+            from components.java
+
+            pom {
+                name = 'record fixed format plugin'
+                description = 'java class utilities for fixed format file I/O'
+                url = 'https://github.com/epi155/recfm-gradle-plugin'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'sonatype-username'
+                        name = 'Enrico Pistolesi'
+                        email = 'epi155.dev@gmail.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/epi155/recfm-gradle-plugin.git'
+                    developerConnection = 'scm:git:https://github.com/epi155/recfm-gradle-plugin.git'
+                    url = 'https://github.com/epi155/recfm-gradle-plugin'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "sonatype-nexus"
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            } else {
+            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            }
+            credentials {
+                username = project.findProperty('sonatype.username')
+                password = project.findProperty('sonatype.password')
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.mavenJava
+}
+
+
+
+
+//gradlePlugin {
+//    plugins {
+//        simplePlugin {
+//            id = 'PmRecordFormatPlugin'
+//            implementationClass = 'io.github.epi155.recfm.exec.RecordFormatPlugin'
+//        }
+//    }
+//}
+
