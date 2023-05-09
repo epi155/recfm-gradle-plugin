@@ -10,13 +10,19 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskAction;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.TypeDescription;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ServiceLoader;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 
 /**
  * plugin recfm task
@@ -31,16 +37,19 @@ public class RecordFormatTask extends DefaultTask {
 
     private static final String SET_REDEFINES = "setRedefines";
     private static final String GET_REDEFINES = "getRedefines";
+    
+    private static final String GET_CHECK = "getCheck";
+    private static final String SET_CHECK = "setCheck";
+    
     private static final String PLUGIN_GROUP_ID = "io.github.epi155";
     private static final String PLUGIN_ARTIFACT_ID = "recfm-gradle-plugin";
-    private static final String PLUGIN_VERSION = "0.6.0-SNAPSHOT";
 
     /**
      * Custom tag in yaml
      * @return {@link Yaml} instance
      */
     public static Yaml prepareYaml() {
-        val constructor = new Constructor(ClassesDefine.class);
+        val constructor = new Constructor(ClassesDefine.class, new LoaderOptions());
         Representer representer = new Representer(new DumperOptions());
 
         tuningClassDef(constructor, representer);
@@ -70,19 +79,26 @@ public class RecordFormatTask extends DefaultTask {
         if (NamedField.class.isAssignableFrom(f)) {
             td.substituteProperty("red", boolean.class, GET_REDEFINES, SET_REDEFINES);
         }
+        if (FloatingField.class.isAssignableFrom(f)) {
+            td.substituteProperty("ovf", OverflowAction.class, "getOnOverflow", "setOnOverflow");
+            td.substituteProperty("unf", UnderflowAction.class, "getOnUnderflow", "setOnUnderflow");
+        }
         if (f == FieldOccurs.class)
             td.substituteProperty("x", int.class, "getTimes", "setTimes");
         else if (f == FieldAbc.class) {
             td.substituteProperty("pad", Character.class, "getPadChar", "setPadChar");
-            td.substituteProperty("chk", CheckChar.class, "getCheck", "setCheck");
+            td.substituteProperty("chk", CheckChar.class, GET_CHECK, SET_CHECK);
         } else if (f == FieldNum.class)
             td.substituteProperty("num", boolean.class, "getNumericAccess", "setNumericAccess");
         else if (f == FieldConstant.class)
             td.substituteProperty("val", String.class, "getValue", "setValue");
-        else if (f == FieldCustom.class) {
+        else if (f == FieldFiller.class) {
+            td.substituteProperty("chr", String.class, "getFillChar", "setFillChar");
+            td.substituteProperty("chk", CheckChar.class, GET_CHECK, SET_CHECK);
+        } else if (f == FieldCustom.class) {
             td.substituteProperty("ini", Character.class, "getInitChar", "setInitChar");
             td.substituteProperty("pad", Character.class, "getPadChar", "setPadChar");
-            td.substituteProperty("chk", CheckUser.class, "getCheck", "setCheck");
+            td.substituteProperty("chk", CheckUser.class, GET_CHECK, SET_CHECK);
         }
         c.addTypeDescription(td);
         r.addTypeDescription(td);
@@ -94,12 +110,9 @@ public class RecordFormatTask extends DefaultTask {
         val extension = (RecordFormatExtension) project.property("recfm");
         String generateDirectory = extension.getGenerateDirectory();
         String settingsDirectory = extension.getSettingsDirectory();
-//        if (generateDirectory == null)
-//            generateDirectory = project.getBuildDir() + "/generated-sources/recfm";
-//        if (settingsDirectory == null)
-//            settingsDirectory = project.getProjectDir() + "/src/main/resources";
 
         log.info("Check for output directory ...");
+        String pluginVersion = forClass(this.getClass());
 
         Yaml yaml = prepareYaml();
 
@@ -111,7 +124,7 @@ public class RecordFormatTask extends DefaultTask {
             .getCheck(extension.isEnforceGetter())
             .group(PLUGIN_GROUP_ID)   // groupId ?
             .artifact(PLUGIN_ARTIFACT_ID)   // ArtifactId
-            .version(PLUGIN_VERSION)
+            .version(pluginVersion)
             .build();
 
         val driver = getCodeProvider(extension.getCodeProviderClassName());
@@ -133,12 +146,14 @@ public class RecordFormatTask extends DefaultTask {
         }
 
         if (extension.isAddCompileSourceRoot()) {
+            log.info("Add {} to main SourceSet", generateDirectory);
             val srcSetCo = project.getExtensions().getByType(SourceSetContainer.class);
-            srcSetCo.getByName("main").java(it -> it.srcDir(extension.getGenerateDirectory()));
+            srcSetCo.getByName("main").java(it -> it.srcDir(generateDirectory));
         }
         if (extension.isAddTestCompileSourceRoot()) {
+            log.info("Add {} to test SourceSet", generateDirectory);
             val srcSetCo = project.getExtensions().getByType(SourceSetContainer.class);
-            srcSetCo.getByName("test").java(it -> it.srcDir(extension.getGenerateDirectory()));
+            srcSetCo.getByName("test").java(it -> it.srcDir(generateDirectory));
         }
 
         log.info("Done.");
@@ -185,6 +200,35 @@ public class RecordFormatTask extends DefaultTask {
         } else {
             throw new ClassDefineException("Class <" + struct.getName() + "> bad defined");
         }
+    }
+    /**
+     * Return the version information for the provided {@link Class}.
+     * @param cls the Class to retrieve the version for
+     * @return the version, or {@code null} if a version can not be extracted
+     */
+    public static String forClass(Class<?> cls) {
+        String implementationVersion = cls.getPackage().getImplementationVersion();
+        if (implementationVersion != null) {
+            return implementationVersion;
+        }
+        URL codeSourceLocation = cls.getProtectionDomain().getCodeSource().getLocation();
+        try {
+            URLConnection connection = codeSourceLocation.openConnection();
+            if (connection instanceof JarURLConnection) {
+                JarURLConnection jarURLConnection = (JarURLConnection) connection;
+                return getImplementationVersion(jarURLConnection.getJarFile());
+            }
+            try (JarFile jarFile = new JarFile(new File(codeSourceLocation.toURI()))) {
+                return getImplementationVersion(jarFile);
+            }
+        }
+        catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private static String getImplementationVersion(JarFile jarFile) throws IOException {
+        return jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.IMPLEMENTATION_VERSION);
     }
 
 }

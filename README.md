@@ -91,7 +91,6 @@ classes:
       - !Abc { name: reseData, at: 527, len:  17 }
 ~~~
 
-The plungin uses goal name `generate`, default phase `generate-sources`, required dependency resolution scope `compile`, required dependency collection scope `compile`.
 Generated code examples [<img src="java-24.png">](https://github.com/epi155/recfm-java/blob/main/recfm-java-addon/README.md#2-xmpl) [<img src="scala-24.png">](https://github.com/epi155/recfm-scala/blob/main/recfm-scala-addon/README.md#2-xmpl)
 
 Generated code may require dependencies
@@ -242,8 +241,8 @@ Tag for alphanumeric field is `Abc`, the possible attributes are:
 |[name](#fld.name)       |     |String | **required**                       |
 |[redefines](#fld.redef) | red |boolean| default `false`                    |
 |[audit](#fld.audit)     |     |boolean| default `false`                    |
-|[onOverflow](#fld.ovfl) |     |[^1]   | default `Trunc`                    |
-|[onUnderflow](#fld.unfl)|     |[^2]   | default `Pad`                      |
+|[onOverflow](#fld.ovfl) | ovf |[^1]   | default `Trunc`                    |
+|[onUnderflow](#fld.unfl)| unf |[^2]   | default `Pad`                      |
 |[padChar](#fld.pchr)    | pad |char   | default value `' '`                |
 |[check](#fld.chk)       | chk |[^3]   | default value `defaults.abc.check` |
 
@@ -320,8 +319,8 @@ is necessarily 0, the control is necessarily that the characters are numeric, th
 |[name](#fld.name)       |   |String | **required**          |
 |[redefines](#fld.redef) |red|boolean| default `false`       |
 |[audit](#fld.audit)     |   |boolean| default `false`       |
-|[onOverflow](#fld.ovfl) |   |[^1]   | default `Trunc`       |
-|[onUnderflow](#fld.unfl)|   |[^2]   | default `Pad`         |
+|[onOverflow](#fld.ovfl) |ovf|[^1]   | default `Trunc`       |
+|[onUnderflow](#fld.unfl)|unf|[^2]   | default `Pad`         |
 |[numericAccess](#fld.num)|num|boolean| default value `false` |
 
 <a name='fld.num'>numericAccess</a> indicates whether to generate the numeric setters and getters for the field, in
@@ -350,8 +349,8 @@ Tag for custom field is `Cus`, a custom field is an extension of an alphanumeric
 |[name](#fld.name)       |     |String | **required**                 |
 |[redefines](#fld.redef) | red |boolean| default `false`              |
 |[audit](#fld.audit)     |     |boolean| default `false`              |
-|[onOverflow](#fld.ovfl) |     |[^1]   | default `Trunc`              |
-|[onUnderflow](#fld.unfl)|     |[^2]   | default `Pad`                |
+|[onOverflow](#fld.ovfl) | ovf |[^1]   | default `Trunc`              |
+|[onUnderflow](#fld.unfl)| unf |[^2]   | default `Pad`                |
 |[padChar](#fld.pchr)    | pad |char   | default `defaults.cus.pad`   |
 |[initChar](#fld.ichr)   | ini |char   | default `defaults.cus.init`  |
 |[check](#fld.ichk)      | chk |[^4]   | default `defaults.cus.check` |
@@ -417,8 +416,8 @@ for it, the possible attributes are:
 |-----------|---| :---: |------------------------------------|
 |[offset](#fld.offset)  |at | int   | **required**                       |
 |[length](#fld.length)  |len| int   | **required**                       |
-|[fillChar](#fld.fill)  |   |char   | default value `defaults.fil.fill`  |
-|[check](#fld.chk)      |   |[^3]   | default value `defaults.fil.check` |
+|[fillChar](#fld.fill)  |chr|char   | default value `defaults.fil.fill`  |
+|[check](#fld.chk)      |chk|[^3]   | default value `defaults.fil.check` |
 
 <a name='fld.fill'>fillChar</a> indicates the character to use to initialize the area
 
