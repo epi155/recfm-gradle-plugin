@@ -15,7 +15,6 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/io.github.epi155/recfm-addon-api
     implementation 'io.github.epi155:recfm-addon-api:0.6.0'
     implementation 'org.yaml:snakeyaml:2.0'
 
@@ -52,7 +51,7 @@ publishing {
             pom {
                 name = 'record fixed format plugin'
                 description = 'java class utilities for fixed format file I/O'
-                url = 'https://github.com/epi155/recfm-gradle-plugin'
+                url = 'https://github.com/epi155/recfm-gradle-plugin/tree/0.6.0'
 
                 licenses {
                     license {
