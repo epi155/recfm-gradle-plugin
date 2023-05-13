@@ -39,63 +39,63 @@ java {
     withSourcesJar()
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
 
-            groupId = "$project.group"
-            artifactId = "$project.name"
-            version = "$project.version"
-            from components.java
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId = "$project.group"
+                artifactId = "$project.name"
+                generatePomFileForPluginMavenPublication
 
-            pom {
-                name = 'record fixed format plugin'
-                description = 'java class utilities for fixed format file I/O'
-                url = 'https://github.com/epi155/recfm-gradle-plugin/tree/0.6.0'
+                from components.java
 
-                licenses {
-                    license {
-                        name = 'MIT License'
-                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                pom {
+                    signing {
+                        useGpgCmd()
+                        sign publishing.publications.release
+                    }
+
+                    name = 'record fixed format plugin'
+                    description = 'java class utilities for fixed format file I/O'
+                    url = 'https://github.com/epi155/recfm-gradle-plugin/tree/0.6.0'
+
+                    licenses {
+                        license {
+                            name = 'MIT License'
+                            url = 'http://www.opensource.org/licenses/mit-license.php'
+                        }
+                    }
+                    developers {
+                        developer {
+                            name = 'Enrico Pistolesi'
+                            email = 'epi155.dev@gmail.com'
+                        }
+                    }
+                    scm {
+                        connection = 'scm:git:git://github.com/epi155/recfm-gradle-plugin.git'
+                        developerConnection = 'scm:git:https://github.com/epi155/recfm-gradle-plugin.git'
+                        url = 'https://github.com/epi155/recfm-gradle-plugin'
                     }
                 }
-                developers {
-                    developer {
-                        id = 'sonatype-username'
-                        name = 'Enrico Pistolesi'
-                        email = 'epi155.dev@gmail.com'
-                    }
+            }
+        }
+        repositories {
+            maven {
+                name = "sonatype-nexus"
+                if (project.version.endsWith('-SNAPSHOT')) {
+                    url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+                } else {
+                    url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                 }
-                scm {
-                    connection = 'scm:git:git://github.com/epi155/recfm-gradle-plugin.git'
-                    developerConnection = 'scm:git:https://github.com/epi155/recfm-gradle-plugin.git'
-                    url = 'https://github.com/epi155/recfm-gradle-plugin'
+                credentials {
+                    username = project.findProperty('sonatype.username')
+                    password = project.findProperty('sonatype.password')
                 }
             }
         }
     }
-    repositories {
-        maven {
-            name = "sonatype-nexus"
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
-            } else {
-            url = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
-            }
-            credentials {
-                username = project.findProperty('sonatype.username')
-                password = project.findProperty('sonatype.password')
-            }
-        }
-    }
 }
-
-signing {
-    useGpgCmd()
-    sign publishing.publications.mavenJava
-}
-
-
 
 
 //gradlePlugin {
