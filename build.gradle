@@ -8,14 +8,19 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group = 'io.github.epi155'
-version = '0.6.0'
+version = '0.7.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    repositories {
+        maven {
+            url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+        }
+    }
 }
 
 dependencies {
-    implementation 'io.github.epi155:recfm-addon-api:0.6.0'
+    implementation 'io.github.epi155:recfm-addon-api:0.7.0-SNAPSHOT'
     implementation 'org.yaml:snakeyaml:2.0'
 
     compileOnly 'org.projectlombok:lombok:1.18.26'
@@ -58,7 +63,7 @@ afterEvaluate {
 
                     name = 'record fixed format plugin'
                     description = 'java class utilities for fixed format file I/O'
-                    url = 'https://github.com/epi155/recfm-gradle-plugin/tree/0.6.0'
+                    url = 'https://github.com/epi155/recfm-gradle-plugin/tree/0.7.0'
 
                     licenses {
                         license {

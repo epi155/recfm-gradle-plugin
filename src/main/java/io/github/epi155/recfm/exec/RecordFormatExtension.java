@@ -13,6 +13,7 @@ public class RecordFormatExtension {
     private boolean doc = true;
     private boolean enforceGetter = true;
     private boolean enforceSetter = true;
+    private boolean preprocessor = false;
     private String[] settings;
     private boolean addCompileSourceRoot = true;
     private boolean addTestCompileSourceRoot = false;
